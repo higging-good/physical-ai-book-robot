@@ -1,0 +1,32 @@
+services:
+  omx_bimanual_book:
+    container_name: omx_bimanual_book
+    image: omx-bimanual-book:0.1.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    tty: true
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    ipc: host
+    cap_add:
+      - SYS_NICE
+    ulimits:
+      rtprio: 99
+      rttime: -1
+      memlock: 8428281856
+    environment:
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-31}
+      ROS_LOCALHOST_ONLY: "0"
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
+      FASTRTPS_DEFAULT_PROFILES_FILE: /root/fastdds_udp_only.xml
+      LEFT_FOLLOWER_PORT: ${LEFT_FOLLOWER_PORT}
+      LEFT_LEADER_PORT: ${LEFT_LEADER_PORT}
+      RIGHT_FOLLOWER_PORT: ${RIGHT_FOLLOWER_PORT}
+      RIGHT_LEADER_PORT: ${RIGHT_LEADER_PORT}
+    volumes:
+      - /dev:/dev
+      - /dev/shm:/dev/shm
+      - ./log:/root/.ros/log
+

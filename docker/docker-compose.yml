@@ -1,0 +1,54 @@
+services:
+  physical_ai_manager:
+    container_name: physical_ai_manager
+    image: robotis/physical-ai-manager:1.0.0
+    build:
+      context: ../physical_ai_manager
+      dockerfile: Dockerfile
+    network_mode: host
+    restart: unless-stopped
+  physical_ai_server:
+    container_name: physical_ai_server
+    image: robotis/physical-ai-server:1.0.0
+    build:
+      context: ..
+      dockerfile: physical_ai_server/Dockerfile.amd64
+    tty: true
+    restart: always
+    cap_add:
+      - SYS_NICE
+    ulimits:
+      rtprio: 99
+      rttime: -1
+      memlock: 8428281856
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - ROS_DOMAIN_ID=${PAM_ROS_DOMAIN_ID:-30}
+      - PAM_ROS_DOMAIN_ID=${PAM_ROS_DOMAIN_ID:-30}
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+      - PHYSICAL_AI_RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+    volumes:
+      - /dev:/dev
+      # Recorded rosbag data, HF dataset/model cache, and training checkpoints
+      # live on the external drive - see docker/container.sh check_external_drive().
+      - ${EXTERNAL_DRIVE_MOUNT}/physical_ai/datasets:/workspace
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /tmp/.docker.xauth:/tmp/.docker.xauth:rw
+      - ../:/root/ros2_ws/src/physical_ai_tools/
+      - ../physical_ai_server/config:/root/ros2_ws/install/physical_ai_server/share/physical_ai_server/config:ro
+      - ./s6-services/common/ros2_service_run.sh:/usr/local/lib/s6-services/ros2_service_run.sh:ro
+      - ${EXTERNAL_DRIVE_MOUNT}/physical_ai/cache:/root/.cache/huggingface
+      - ${EXTERNAL_DRIVE_MOUNT}/physical_ai/models:/root/ros2_ws/src/physical_ai_tools/lerobot/outputs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/robotis/agent_sockets/physical_ai_server:/var/run/agent
+    privileged: true
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]

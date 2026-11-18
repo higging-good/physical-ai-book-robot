@@ -1,0 +1,37 @@
+physical_ai_server:
+  ros__parameters:
+    omx_bimanual:
+      observation_list:
+        - camera1
+        - camera2
+        - state
+
+      camera_topic_list:
+        - camera1:/camera1/color/image_raw/compressed
+        - camera2:/book_detection/image_raw/compressed
+
+      joint_topic_list:
+        - follower_left:/bimanual/left/follower/joint_states
+        - follower_right:/bimanual/right/follower/joint_states
+        - leader_left:/bimanual/left/leader/joint_trajectory
+        - leader_right:/bimanual/right/leader/joint_trajectory
+
+      joint_list:
+        - leader_left
+        - leader_right
+
+      joint_order:
+        leader_left:
+          - left_joint1
+          - left_joint2
+          - left_joint3
+          - left_joint4
+          - left_joint5
+          - left_gripper_joint_1
+        leader_right:
+          - right_joint1
+          - right_joint2
+          - right_joint3
+          - right_joint4
+          - right_joint5
+          - right_gripper_joint_1
